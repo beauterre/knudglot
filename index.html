@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNUDGLOT</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+            border: 3px solid #00ffcc;
+        }
+        h1 { color: #00ffcc; margin-bottom: 10px; letter-spacing: 2px; }
+        .mode-selector {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 2px solid #00ffcc;
+            background: transparent;
+            color: #00ffcc;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .mode-btn.active {
+            background: #00ffcc;
+            color: #121212;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            background: #2d2d2d;
+            color: white;
+        }
+        .output-box {
+            background: #000;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #00ffcc;
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #fff;
+            min-height: 60px;
+            margin-bottom: 20px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+        .dictionary {
+            text-align: left;
+            font-size: 0.8rem;
+            color: #888;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .dict-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌌 KNUDGLOT 🌌</h1>
+    
+    <div class="mode-selector">
+        <button id="btn-to" class="mode-btn active" onclick="setMode('to')">NL → XENO</button>
+        <button id="btn-from" class="mode-btn" onclick="setMode('from')">XENO → NL</button>
+    </div>
+
+    <textarea id="input" placeholder="Typ Nederlands... (bijv: Hallo, hoe gaat het?)" oninput="processText()"></textarea>
+    <div class="output-box" id="output">...</div>
+
+    <div class="dictionary">
+        <strong>📜 Unique mapping (No Collisions):</strong>
+        <div class="dict-grid" id="dict-grid"></div>
+    </div>
+</div>
+
+<script>
+    var currentMode = 'to';
+    var VOWELS = "aeiouyéèöüaaeeoouuiieoeuauou";
+    
+    // UNIQUE VOWEL MAP (Bijection)
+    // Every value is different. No two keys result in the same sound.
+    var syllableMap = {
+        "aa": "oa", "ee": "ue", "oo": "au", "uu": "io",
+        "ie": "ei", "oe": "ou", "eu": "ae", "ui": "ai", 
+        "au": "eo", "ou": "ia", "ij": "ya",
+        "a": "o", "e": "u", "i": "e", "o": "a", "u": "i", "y": "y"
+    };
+
+    // UNIQUE CONSONANT MAP (Bijection)
+    // Every value is different. No two consonants result in the same sound.
+    var consMap = {
+        "b": "p", "c": "k", "d": "t", "f": "v", "g": "h", 
+        "h": "l", "j": "y", "k": "g", "l": "r", "m": "n", 
+        "n": "m", "p": "b", "q": "x", "r": "s", "s": "z", 
+        "t": "d", "v": "f", "w": "w", "x": "q", "z": "j"
+    };
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('btn-to').classList.toggle('active', mode === 'to');
+        document.getElementById('btn-from').classList.toggle('active', mode === 'from');
+        processText();
+    }
+
+    function processText() {
+        var text = document.getElementById('input').value;
+        var outputDiv = document.getElementById('output');
+        if (!text) { outputDiv.innerText = "..."; return; }
+
+        var words = text.split(/(\s+|[.,!?;])/);
+        var result = "";
+
+        for (var w = 0; w < words.length; w++) {
+            var word = words[w];
+            if (word.trim() === "" || /^[.,!?;]$/.test(word)) {
+                result += word;
+                continue;
+            }
+            result += (currentMode === 'to') ? encode(word) : decode(word);
+        }
+        outputDiv.innerText = result;
+    }
+
+    function encode(word) {
+        var result = "";
+        var i = 0;
+        while (i < word.length) {
+            var char = word[i].toLowerCase();
+            if (consMap[char]) {
+                result += matchCase(word[i], consMap[char]);
+                i++;
+            } else if (VOWELS.indexOf(char) !== -1) {
+                var cluster = "";
+                while (i < word.length && VOWELS.indexOf(word[i].toLowerCase()) !== -1) {
+                    cluster += word[i].toLowerCase();
+                    i++;
+                }
+                var rep = syllableMap[cluster] || syllableMap[cluster[0]] || cluster;
+                result += matchCase(cluster, rep);
+            } else {
+                result += word[i];
+                i++;
+            }
+        }
+        return result;
+    }
+
+    function decode(word) {
+        var result = "";
+        var i = 0;
+
+        // Dynamic Reverse Maps
+        var revSyl = {};
+        for (var s in syllableMap) revSyl[syllableMap[s]] = s;
+        var revCons = {};
+        for (var c in consMap) revCons[consMap[c]] = c;
+
+        while (i < word.length) {
+            var char = word[i].toLowerCase();
+            if (revCons[char]) {
+                result += matchCase(char, revCons[char]);
+                i++;
+            } else if (VOWELS.indexOf(char) !== -1) {
+                var cluster = "";
+                while (i < word.length && VOWELS.indexOf(word[i].toLowerCase()) !== -1) {
+                    cluster += word[i].toLowerCase();
+                    i++;
+                }
+                var rep = revSyl[cluster] || (cluster[0] ? revSyl[cluster[0]] : cluster);
+                result += matchCase(cluster, rep);
+            } else {
+                result += word[i];
+                i++;
+            }
+        }
+        return result;
+    }
+
+    function matchCase(original, replacement) {
+        if (!original || !replacement) return "";
+        if (original[0] === original[0].toUpperCase()) {
+            return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+        }
+        return replacement;
+    }
+
+    function buildDictionary() {
+        var grid = document.getElementById('dict-grid');
+        var keys = Object.keys(syllableMap);
+        for (var i = 0; i < keys.length; i++) {
+            var item = document.createElement('div');
+            item.innerText = keys[i] + " ↔ " + syllableMap[keys[i]];
+            grid.appendChild(item);
+        }
+    }
+    buildDictionary();
+</script>
+
+</body>
+</html>
