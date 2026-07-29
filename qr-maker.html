@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KNUD-QR GENERATOR</title>
+    <title>KNUD-QR 29x29</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -96,6 +96,12 @@
             word-break: break-all;
             font-family: monospace;
         }
+        .hint {
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -105,6 +111,7 @@
     <div class="input-group">
         <label for="term">Voer term in:</label>
         <input type="text" id="term" placeholder="bijv: goaltjesdief" onkeypress="handleKeyPress(event)">
+        <div class="hint">Max 24 tekens voor een super-simpele grid (29x29).</div>
     </div>
     <button class="gen-btn" onclick="generateQR()">Genereer Simpele QR</button>
     <div id="result" class="qr-result-container">
@@ -114,13 +121,13 @@
 </div>
 
 <script>
-    // Initialization with LOW error correction for the simplest visual pattern
+    // Low Error Correction is mandatory for the smallest grid (Version 3 / 29x29)
     var qrcode = new QRCode(document.getElementById("qrcode"), {
         width: 200,
         height: 200,
         colorDark : "#1A1A1A",
         colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.L // Changed from H to L
+        correctLevel : QRCode.CorrectLevel.L 
     });
 
     function handleKeyPress(e) {
@@ -137,7 +144,9 @@
             return;
         }
 
+        // URL structure: 31 chars base + term length
         var finalUrl = "https://knuddebier.nl/filmpjes/" + term;
+        
         qrcode.makeCode(finalUrl);
         urlDisplay.innerText = finalUrl;
         resultContainer.style.display = 'flex';
