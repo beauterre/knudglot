@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KNUD-QR GENERATOR</title>
-    <!-- We use a lightweight QR library for reliability -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
@@ -17,7 +16,6 @@
             min-height: 100vh;
             margin: 0;
         }
-
         .container {
             width: 90%;
             max-width: 500px;
@@ -28,7 +26,6 @@
             box-shadow: 12px 12px 0 #1A1A1A;
             text-align: center;
         }
-
         h1 {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 48px;
@@ -37,12 +34,10 @@
             margin-bottom: 20px;
             margin-top: 0;
         }
-
         .input-group {
             margin-bottom: 25px;
             text-align: left;
         }
-
         label {
             display: block;
             font-weight: 700;
@@ -51,7 +46,6 @@
             text-transform: uppercase;
             font-size: 14px;
         }
-
         input {
             width: 100%;
             padding: 15px;
@@ -62,7 +56,6 @@
             box-sizing: border-box;
             font-weight: 600;
         }
-
         .gen-btn {
             width: 100%;
             background: #F11308;
@@ -76,15 +69,13 @@
             text-transform: uppercase;
             margin-bottom: 30px;
         }
-
         .gen-btn:hover {
             transform: translate(-2px, -2px);
             box-shadow: 5px 5px 0 #1A1A1A;
             background: #d10f06;
         }
-
         .qr-result-container {
-            display: none; /* Hidden until generated */
+            display: none; 
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -93,12 +84,10 @@
             padding: 20px;
             box-shadow: 8px 8px 0 #1A1A1A;
         }
-
         #qrcode {
             padding: 10px;
             background: white;
         }
-
         .url-display {
             margin-top: 15px;
             font-size: 14px;
@@ -113,14 +102,11 @@
 
 <div class="container">
     <h1>📦 KNUD-QR 📦</h1>
-    
     <div class="input-group">
-        <label for="term">Voer term in (bijv: goaltjesdief):</label>
-        <input type="text" id="term" placeholder="Typ hier..." onkeypress="handleKeyPress(event)">
+        <label for="term">Voer term in:</label>
+        <input type="text" id="term" placeholder="bijv: goaltjesdief" onkeypress="handleKeyPress(event)">
     </div>
-
-    <button class="gen-btn" onclick="generateQR()">Genereer QR Code</button>
-
+    <button class="gen-btn" onclick="generateQR()">Genereer Simpele QR</button>
     <div id="result" class="qr-result-container">
         <div id="qrcode"></div>
         <div class="url-display" id="urlDisplay"></div>
@@ -128,18 +114,17 @@
 </div>
 
 <script>
+    // Initialization with LOW error correction for the simplest visual pattern
     var qrcode = new QRCode(document.getElementById("qrcode"), {
         width: 200,
         height: 200,
         colorDark : "#1A1A1A",
         colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+        correctLevel : QRCode.CorrectLevel.L // Changed from H to L
     });
 
     function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            generateQR();
-        }
+        if (e.key === 'Enter') generateQR();
     }
 
     function generateQR() {
@@ -152,16 +137,9 @@
             return;
         }
 
-        // Construct the specific URL
         var finalUrl = "https://knuddebier.nl/filmpjes/" + term;
-
-        // Update QR Code
         qrcode.makeCode(finalUrl);
-
-        // Update URL display text
         urlDisplay.innerText = finalUrl;
-
-        // Show the container with a simple animation effect
         resultContainer.style.display = 'flex';
     }
 </script>
