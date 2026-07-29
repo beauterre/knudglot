@@ -145,7 +145,7 @@
         }
 
         // URL structure: 31 chars base + term length
-        var finalUrl = "https://knuddebier.nl/filmpjes/" + term;
+        var finalUrl = "https://knuddebier.nl/filmpjes/" + term.toUpperCase();
         
         qrcode.makeCode(finalUrl);
         urlDisplay.innerText = finalUrl;
