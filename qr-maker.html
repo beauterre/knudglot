@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNUD-QR GENERATOR</title>
+    <!-- We use a lightweight QR library for reliability -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ECE7DE;
+            color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: #F4F0E8;
+            border: 5px solid #1A1A1A;
+            border-radius: 0;
+            padding: 35px;
+            box-shadow: 12px 12px 0 #1A1A1A;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            letter-spacing: 1px;
+            color: #1A1A1A;
+            margin-bottom: 20px;
+            margin-top: 0;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1A1A1A;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 4px solid #1A1A1A;
+            background: white;
+            color: #222;
+            font-size: 18px;
+            box-sizing: border-box;
+            font-weight: 600;
+        }
+
+        .gen-btn {
+            width: 100%;
+            background: #F11308;
+            color: white;
+            border: 4px solid #1A1A1A;
+            padding: 15px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: .2s;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+
+        .gen-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 #1A1A1A;
+            background: #d10f06;
+        }
+
+        .qr-result-container {
+            display: none; /* Hidden until generated */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 4px solid #1A1A1A;
+            padding: 20px;
+            box-shadow: 8px 8px 0 #1A1A1A;
+        }
+
+        #qrcode {
+            padding: 10px;
+            background: white;
+        }
+
+        .url-display {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            word-break: break-all;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📦 KNUD-QR 📦</h1>
+    
+    <div class="input-group">
+        <label for="term">Voer term in (bijv: goaltjesdief):</label>
+        <input type="text" id="term" placeholder="Typ hier..." onkeypress="handleKeyPress(event)">
+    </div>
+
+    <button class="gen-btn" onclick="generateQR()">Genereer QR Code</button>
+
+    <div id="result" class="qr-result-container">
+        <div id="qrcode"></div>
+        <div class="url-display" id="urlDisplay"></div>
+    </div>
+</div>
+
+<script>
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+        width: 200,
+        height: 200,
+        colorDark : "#1A1A1A",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            generateQR();
+        }
+    }
+
+    function generateQR() {
+        var term = document.getElementById('term').value.trim();
+        var resultContainer = document.getElementById('result');
+        var urlDisplay = document.getElementById('urlDisplay');
+
+        if (term === "") {
+            alert("Vul eerst een term in!");
+            return;
+        }
+
+        // Construct the specific URL
+        var finalUrl = "https://knuddebier.nl/filmpjes/" + term;
+
+        // Update QR Code
+        qrcode.makeCode(finalUrl);
+
+        // Update URL display text
+        urlDisplay.innerText = finalUrl;
+
+        // Show the container with a simple animation effect
+        resultContainer.style.display = 'flex';
+    }
+</script>
+
+</body>
+</html>
