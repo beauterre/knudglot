@@ -19,15 +19,10 @@ body {
 .container{
     width:90%;
     max-width:750px;
-
     background:#F4F0E8;
-
     border:5px solid #1A1A1A;
-
     border-radius:0;
-
     padding:35px;
-
     box-shadow:12px 12px 0 #1A1A1A;
 }
 
@@ -37,6 +32,7 @@ h1{
     letter-spacing:1px;
     color:#1A1A1A;
     margin-bottom:20px;
+    text-align:center;
 }
 
 .mode-selector{
@@ -47,116 +43,113 @@ h1{
 }
 
 .mode-btn{
-
     background:white;
-
     border:4px solid #1A1A1A;
-
     color:#1A1A1A;
-
     padding:12px 22px;
-
     font-weight:700;
-
     cursor:pointer;
-
     transition:.2s;
 }
 
 .mode-btn:hover{
-
     transform:translate(-2px,-2px);
-
     box-shadow:5px 5px 0 #1A1A1A;
 }
 
 .mode-btn.active{
-
     background:#F11308;
-
     color:white;
-
     border-color:#1A1A1A;
 }
 
 textarea{
-
     width:100%;
-
     height:110px;
-
     border:4px solid #1A1A1A;
-
     background:white;
-
     color:#222;
-
     padding:15px;
-
     font-size:18px;
-
     resize:vertical;
-
     box-sizing:border-box;
 }
 
 .output-box{
-
     margin-top:20px;
-
     padding:25px;
-
     background:white;
-
     border:4px solid #1A1A1A;
-
     box-shadow:8px 8px 0 #1A1A1A;
-
     font-size:30px;
-
     font-weight:700;
-
     min-height:70px;
-
     color:#222;
-
     line-height:1.3;
 }
 
+.speech-controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.voice-select {
+    padding: 10px;
+    border: 4px solid #1A1A1A;
+    background: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.speak-btn {
+    background: #1A1A1A;
+    color: white;
+    border: 4px solid #1A1A1A;
+    padding: 12px 22px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.speak-btn:hover {
+    background: #F11308;
+}
+
 .dictionary{
-
     margin-top:25px;
-
     border-top:3px solid #1A1A1A;
-
     padding-top:15px;
-
     color:#555;
-
     font-size:.85rem;
 }
 
 .dict-grid{
-
     display:grid;
-
     grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-
     gap:10px;
 }    </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🌌 KNUDGLOT 🌌</h1>
+    <h1>⚪ KNUDGLOT 🔴</h1>
     
     <div class="mode-selector">
-        <button id="btn-to" class="mode-btn active" onclick="setMode('to')">NL → KN</button>
-        <button id="btn-from" class="mode-btn" onclick="setMode('from')">KN → NL</button>
+        <button id="btn-to" class="mode-btn active" onclick="setMode('to')">⚪NL → 🔴KN</button>
+        <button id="btn-from" class="mode-btn" onclick="setMode('from')">🔴KN → ⚪NL</button>
     </div>
 
     <textarea id="input" placeholder="Typ Nederlands... (bijv: Hallo, hoe gaat het?)" oninput="processText()"></textarea>
     <div class="output-box" id="output">...</div>
+
+    <div class="speech-controls">
+        <select id="voiceSelect" class="voice-select"></select>
+        <button class="speak-btn" onclick="speakText()">🔊 SPEAK</button>
+    </div>
 
     <div class="dictionary" style="display:none;">
         <strong>📜 Unique mapping (No Collisions):</strong>
@@ -168,8 +161,6 @@ textarea{
     var currentMode = 'to';
     var VOWELS = "aeiouyéèöüaaeeoouuiieoeuauou";
     
-    // UNIQUE VOWEL MAP (Bijection)
-    // Every value is different. No two keys result in the same sound.
     var syllableMap = {
         "aa": "oa", "ee": "ue", "oo": "au", "uu": "io",
         "ie": "ei", "oe": "ou", "eu": "ae", "ui": "ai", 
@@ -177,14 +168,58 @@ textarea{
         "a": "o", "e": "u", "i": "e", "o": "a", "u": "i", "y": "y"
     };
 
-    // UNIQUE CONSONANT MAP (Bijection)
-    // Every value is different. No two consonants result in the same sound.
     var consMap = {
         "b": "p", "c": "k", "d": "t", "f": "v", "g": "h", 
         "h": "l", "j": "y", "k": "g", "l": "r", "m": "n", 
         "n": "m", "p": "b", "q": "x", "r": "s", "s": "z", 
         "t": "d", "v": "f", "w": "w", "x": "q", "z": "j"
     };
+
+    // SPEECH SETUP
+    var synth = window.speechSynthesis;
+    var voiceSelect = document.getElementById('voiceSelect');
+
+    function populateVoiceList() {
+        var voices = synth.getVoices();
+        voiceSelect.innerHTML = '';
+        voices.forEach(function(voice) {
+            var option = document.createElement('option');
+            option.textContent = voice.name + ' (' + voice.lang + ')';
+            option.setAttribute('data-lang', voice.lang);
+            option.setAttribute('data-name', voice.name);
+            
+            // Set a default exotic flavor (trying to find a non-Dutch/English one)
+            if(voice.lang.includes('fr') || voice.lang.includes('it')) {
+                option.selected = true;
+            }
+            voiceSelect.appendChild(option);
+        });
+    }
+
+    populateVoiceList();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+    function speakText() {
+        var text = document.getElementById('output').innerText;
+        if (text === "...") return;
+
+        var utterThis = new SpeechSynthesisUtterance(text);
+        var selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+        
+        var voices = synth.getVoices();
+        for(var i = 0; i < voices.length; i++) {
+            if(voices[i].name === selectedOption) {
+                utterThis.voice = voices[i];
+                break;
+            }
+        }
+        
+        utterThis.pitch = 1.2; // Make it slightly higher for a "minion/alien" feel
+        utterThis.rate = 0.9;  // Slightly slower to pronounce the odd sounds
+        synth.speak(utterThis);
+    }
 
     function setMode(mode) {
         currentMode = mode;
@@ -239,8 +274,6 @@ textarea{
     function decode(word) {
         var result = "";
         var i = 0;
-
-        // Dynamic Reverse Maps
         var revSyl = {};
         for (var s in syllableMap) revSyl[syllableMap[s]] = s;
         var revCons = {};
